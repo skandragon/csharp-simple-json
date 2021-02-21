@@ -7,25 +7,25 @@ using System.Collections.Generic;
 namespace org.flame.SimpleJson {
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class SkandragonJsonName: Attribute
+    public class JsonName: Attribute
     {
         public string Value {get; }
 
-        public SkandragonJsonName(string s) {
+        public JsonName(string s) {
             this.Value = s;
         }
     }
 
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class SkandragonJsonIgnore: Attribute
+    public class JsonIgnore: Attribute
     {
-        public SkandragonJsonIgnore() {}
+        public JsonIgnore() {}
     }
 
-    public static class SkandragonSimpleJson {
+    public static class SimpleJson {
         private static string GetJsonName(PropertyInfo prop)
         {
-            var a = (SkandragonJsonName)Attribute.GetCustomAttribute(prop, typeof(SkandragonJsonName));
+            var a = (JsonName)Attribute.GetCustomAttribute(prop, typeof(JsonName));
             if (a == null)
             {
                 return prop.Name;
@@ -35,7 +35,7 @@ namespace org.flame.SimpleJson {
 
         private static string GetJsonName(FieldInfo f)
         {
-            var a = (SkandragonJsonName)Attribute.GetCustomAttribute(f, typeof(SkandragonJsonName));
+            var a = (JsonName)Attribute.GetCustomAttribute(f, typeof(JsonName));
             if (a == null)
             {
                 return f.Name;
@@ -45,13 +45,13 @@ namespace org.flame.SimpleJson {
 
         private static bool ShouldSkip(PropertyInfo prop)
         {
-            var a = (SkandragonJsonIgnore)Attribute.GetCustomAttribute(prop, typeof(SkandragonJsonIgnore));
+            var a = (JsonIgnore)Attribute.GetCustomAttribute(prop, typeof(JsonIgnore));
             return a != null;
         }
 
         private static bool ShouldSkip(FieldInfo f)
         {
-            var a = (SkandragonJsonIgnore)Attribute.GetCustomAttribute(f, typeof(SkandragonJsonIgnore));
+            var a = (JsonIgnore)Attribute.GetCustomAttribute(f, typeof(JsonIgnore));
             return a != null;
         }
 
