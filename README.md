@@ -1,5 +1,5 @@
 # csharp-simple-json
-What might become a simple json encoder (and perhaps parser) in c#, suitable for
+A simple json encoder (and perhaps parser) in c#, suitable for
 ancient .NET platforms like Unity, where `System.Text.Json` does't exist, and
 Unity's `JsonUtil.ToJson()` doesn't do most useful things like nested objects,
 lists, arrays...
@@ -8,9 +8,13 @@ This isn't intended to be a performant solution, but performance improvements ar
 welcome.  Note that I started learning c# about 3 days prior to coding this,
 so buyer beware.
 
+# Usage
+
 See `main.cs` for example usage.
 
-This also is not intended to compile to a .dll library, and then be included as
+# Installation
+
+This is not intended to compile to a .dll library, and then be included as
 a package or reference.  You should drop the json.cs file into your project, and
 compile it as part of your code base.  This is easier as a dependent .dll is hard
 to include in a Unity plugin/mod due to dependency conflicts.
