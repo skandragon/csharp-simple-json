@@ -24,16 +24,28 @@ using System.Collections.Generic;
 
 namespace org.flame.SimpleJson {
 
+    ///
+    /// <summary>
+    /// Specify the exact name to use for a field or property when generating JSON.
+    /// The <param>name</param> must be a string that is suitable as
+    /// a JSON key.
+    ///</summary>
+    ///
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class JsonName: Attribute
     {
         public string Value {get; }
 
-        public JsonName(string s) {
-            this.Value = s;
+        public JsonName(string name) {
+            this.Value = name;
         }
     }
 
+    ///
+    /// <summary>
+    /// Ignore a field or property.
+    /// </summary>
+    ///
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
     public class JsonIgnore: Attribute
     {
@@ -41,6 +53,67 @@ namespace org.flame.SimpleJson {
     }
 
     public static class SimpleJson {
+        ///
+        /// <summary>
+        /// Return a <c>string</c> of JSON representing the object <param>o</param>.
+        /// </summary>
+        ///
+        public static string ToJson(Object o)
+        {
+            var sb = new StringBuilder();
+            ToJson(sb, o);
+            return sb.ToString();
+        }
+
+        ///
+        /// <summary>
+        /// Append to <param>sb</param> the JSON representing the object <param>o</param>.
+        /// </summary>
+        ///
+        public static void ToJson(StringBuilder sb, object o)
+        {
+            if (o == null)
+            {
+                sb.Append("null");
+                return;
+            }
+
+            var ty = o.GetType();
+
+            if (ty == typeof(int) || ty == typeof(uint)
+                || ty == typeof(long) || ty == typeof(ulong)
+                || ty == typeof(float) || ty == typeof(double) || ty == typeof(decimal)
+                || ty == typeof(short) || ty == typeof(ushort)
+                || ty == typeof(byte) || ty == typeof(sbyte))
+            {
+                sb.Append(o.ToString());
+                return;
+            }
+            else if (ty == typeof(string))
+            {
+                sb.Append(EncodeString((string)o));
+                return;
+            }
+            else if (ty == typeof(char))
+            {
+                sb.Append(EncodeChar((char)o));
+                return;
+            }
+            else if (ty == typeof(bool))
+            {
+                sb.Append((bool)o ? "true" : "false");
+                return;
+            }
+            else if (TestIfIEnumerable(ty))
+            {
+                EncodeList(sb, ty, o);
+                return;
+            }
+
+            // try as a plain object and hope for the best...
+            EncodeObject(sb, o);
+        }
+
         private static string GetJsonName(PropertyInfo prop)
         {
             var a = (JsonName)Attribute.GetCustomAttribute(prop, typeof(JsonName));
@@ -129,57 +202,6 @@ namespace org.flame.SimpleJson {
 
         private static bool TestIfIEnumerable(Type i) {
             return TestIfGeneric(i, typeof(IEnumerable<>));
-        }
-
-        public static string ToJson(Object o)
-        {
-            var sb = new StringBuilder();
-            ToJson(sb, o);
-            return sb.ToString();
-        }
-
-        public static void ToJson(StringBuilder sb, object o)
-        {
-            if (o == null)
-            {
-                sb.Append("null");
-                return;
-            }
-
-            var ty = o.GetType();
-
-            if (ty == typeof(int) || ty == typeof(uint)
-                || ty == typeof(long) || ty == typeof(ulong)
-                || ty == typeof(float) || ty == typeof(double) || ty == typeof(decimal)
-                || ty == typeof(short) || ty == typeof(ushort)
-                || ty == typeof(byte) || ty == typeof(sbyte))
-            {
-                sb.Append(o.ToString());
-                return;
-            }
-            else if (ty == typeof(string))
-            {
-                sb.Append(EncodeString((string)o));
-                return;
-            }
-            else if (ty == typeof(char))
-            {
-                sb.Append(EncodeChar((char)o));
-                return;
-            }
-            else if (ty == typeof(bool))
-            {
-                sb.Append((bool)o ? "true" : "false");
-                return;
-            }
-            else if (TestIfIEnumerable(ty))
-            {
-                EncodeList(sb, ty, o);
-                return;
-            }
-
-            // try as a plain object and hope for the best...
-            EncodeObject(sb, o);
         }
 
         private static void EncodeList(StringBuilder sb, Type ty, object o)
