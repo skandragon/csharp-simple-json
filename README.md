@@ -10,6 +10,11 @@ so buyer beware.
 
 See `main.cs` for example usage.
 
+This also is not intended to compile to a .dll library, and then be included as
+a package or reference.  You should drop the json.cs file into your project, and
+compile it as part of your code base.  This is easier as a dependent .dll is hard
+to include in a Unity plugin/mod due to dependency conflicts.
+
 # TODO
 
 * Properly handle Dictionary<T, X> types, where T must be a string (or
