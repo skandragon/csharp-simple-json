@@ -17,12 +17,13 @@
 //
 
 using System;
-using System.Text;
-using System.Reflection;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Text;
 
-namespace org.flame.SimpleJson {
+namespace org.flame.SimpleJson
+{
 
     ///
     /// <summary>
@@ -32,11 +33,12 @@ namespace org.flame.SimpleJson {
     ///</summary>
     ///
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class JsonName: Attribute
+    public class JsonName : Attribute
     {
-        public string Value {get; }
+        public string Value { get; }
 
-        public JsonName(string name) {
+        public JsonName(string name)
+        {
             this.Value = name;
         }
     }
@@ -47,12 +49,13 @@ namespace org.flame.SimpleJson {
     /// </summary>
     ///
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class JsonIgnore: Attribute
+    public class JsonIgnore : Attribute
     {
-        public JsonIgnore() {}
+        public JsonIgnore() { }
     }
 
-    public static class SimpleJson {
+    public static class SimpleJson
+    {
         ///
         /// <summary>
         /// Return a <c>string</c> of JSON representing the object <param>o</param>.
@@ -80,26 +83,26 @@ namespace org.flame.SimpleJson {
 
             var ty = o.GetType();
 
-            if (ty == typeof(int) || ty == typeof(uint)
-                || ty == typeof(long) || ty == typeof(ulong)
-                || ty == typeof(float) || ty == typeof(double) || ty == typeof(decimal)
-                || ty == typeof(short) || ty == typeof(ushort)
-                || ty == typeof(byte) || ty == typeof(sbyte))
+            if (ty.Equals(typeof(int)) || ty.Equals(typeof(uint))
+                || ty.Equals(typeof(long)) || ty.Equals(typeof(ulong))
+                || ty.Equals(typeof(float)) || ty.Equals(typeof(double)) || ty.Equals(typeof(decimal))
+                || ty.Equals(typeof(short)) || ty.Equals(typeof(ushort))
+                || ty.Equals(typeof(byte)) || ty.Equals(typeof(sbyte)))
             {
                 sb.Append(o.ToString());
                 return;
             }
-            else if (ty == typeof(string))
+            else if (ty.Equals(typeof(string)))
             {
                 sb.Append(EncodeString((string)o));
                 return;
             }
-            else if (ty == typeof(char))
+            else if (ty.Equals(typeof(char)))
             {
                 sb.Append(EncodeChar((char)o));
                 return;
             }
-            else if (ty == typeof(bool))
+            else if (ty.Equals(typeof(bool)))
             {
                 sb.Append((bool)o ? "true" : "false");
                 return;
@@ -182,7 +185,7 @@ namespace org.flame.SimpleJson {
 
         private static bool IsGenericType(Type i, Type target)
         {
-            return i.IsGenericType && i.GetGenericTypeDefinition() == target;
+            return i.IsGenericType && i.GetGenericTypeDefinition().Equals(target);
         }
 
         private static bool TestIfGeneric(Type type, Type target)
@@ -193,14 +196,16 @@ namespace org.flame.SimpleJson {
             }
             foreach (var i in type.GetInterfaces())
             {
-                if (IsGenericType(i, target)) {
+                if (IsGenericType(i, target))
+                {
                     return true;
                 }
             }
             return false;
         }
 
-        private static bool TestIfIEnumerable(Type i) {
+        private static bool TestIfIEnumerable(Type i)
+        {
             return TestIfGeneric(i, typeof(IEnumerable<>));
         }
 
