@@ -1,6 +1,8 @@
 using System;
 using System.Text;
 using System.Reflection;
+using System.Collections;
+using System.Collections.Generic;
 
 namespace org.flame.SimpleJson {
     public class MainClass {
@@ -9,6 +11,10 @@ namespace org.flame.SimpleJson {
                 x.Property1 = "string1";
                 x.field1 = "field1string";
                 x.Address = new PostalAddressExample("main st.", 12345);
+                x.IntList = new List<int>();
+                x.IntList.Add(1);
+                x.IntList.Add(2);
+                x.IntList.Add(3);
 
                 Console.WriteLine(SkandragonSimpleJson.ToJson(x));
                 Console.WriteLine(SkandragonSimpleJson.ToJson(123));
@@ -70,9 +76,11 @@ namespace org.flame.SimpleJson {
         public PostalAddressExample Address {get; set;}
 
         public string field1;
+
+        public List<int> IntList {get; set;}
     }
 
-    public class SkandragonSimpleJson {
+    public static class SkandragonSimpleJson {
         private static string GetJsonName(PropertyInfo prop)
         {
             var a = (SkandragonJsonName)Attribute.GetCustomAttribute(prop, typeof(SkandragonJsonName));
@@ -139,11 +147,43 @@ namespace org.flame.SimpleJson {
             return "\"" + RawEncodeChar(c) + "\"";
         }
 
-        public static string ToJson(object o)
+        private static bool IsGenericType(Type i, Type target)
+        {
+            return i.IsGenericType && i.GetGenericTypeDefinition() == target;
+        }
+
+        private static bool TestIfGeneric(Type type, Type target)
+        {
+            if (IsGenericType(type, target))
+            {
+                return true;
+            }
+            foreach (var i in type.GetInterfaces())
+            {
+                if (IsGenericType(i, target)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private static bool TestIfIEnumerable(Type i) {
+            return TestIfGeneric(i, typeof(IEnumerable<>));
+        }
+
+        public static string ToJson(Object o)
+        {
+            var sb = new StringBuilder();
+            ToJson(sb, o);
+            return sb.ToString();
+        }
+
+        public static void ToJson(StringBuilder sb, object o)
         {
             if (o == null)
             {
-                return "null";
+                sb.Append("null");
+                return;
             }
 
             var ty = o.GetType();
@@ -154,22 +194,50 @@ namespace org.flame.SimpleJson {
                 || ty == typeof(short) || ty == typeof(ushort)
                 || ty == typeof(byte) || ty == typeof(sbyte))
             {
-                return o.ToString();
+                sb.Append(o.ToString());
+                return;
             }
             else if (ty == typeof(string))
             {
-                return EncodeString((string)o);
+                sb.Append(EncodeString((string)o));
+                return;
             }
             else if (ty == typeof(char))
             {
-                return EncodeChar((char)o);
+                sb.Append(EncodeChar((char)o));
+                return;
             }
             else if (ty == typeof(bool))
             {
-                return (bool)o ? "true" : "false";
+                sb.Append((bool)o ? "true" : "false");
+                return;
+            }
+            else if (TestIfIEnumerable(ty))
+            {
+                IEnumerable enumerable = o as IEnumerable;
+
+                sb.Append("[");
+                var first = true;
+                foreach (var obj in enumerable)
+                {
+                    if (!first)
+                    {
+                        sb.Append(",");
+                    }
+                    first = false;
+                    ToJson(sb, obj);
+                }
+                sb.Append("]");
+                return;
             }
 
-            var sb = new StringBuilder("{");
+            // try as a plain object and hope for the best...
+            EncodeObject(sb, o);
+        }
+
+        private static void EncodeObject(StringBuilder sb, object o)
+        {
+            sb.Append("{");
             var first = true;
 
             var props = o.GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -185,7 +253,7 @@ namespace org.flame.SimpleJson {
                 }
                 first = false;
                 sb.Append(EncodeString(GetJsonName(prop)) + ":");
-                sb.Append(ToJson(prop.GetValue(o, null)));
+                ToJson(sb, prop.GetValue(o, null));
             }
 
             var fields = o.GetType().GetFields(BindingFlags.Public | BindingFlags.Instance);
@@ -201,11 +269,10 @@ namespace org.flame.SimpleJson {
                 }
                 first = false;
                 sb.Append(EncodeString(GetJsonName(field)) + ":");
-                sb.Append(ToJson(field.GetValue(o)));
+                ToJson(sb, field.GetValue(o));
             }
 
             sb.Append("}");
-            return sb.ToString();
         }
     }
 }
